@@ -1,1 +1,1 @@
-{"virtualbox":{"/vagrant":{"guestpath":"/vagrant","hostpath":"/Users/rafaelsantos/Code/mininet-vagrant","disabled":false,"__vagrantfile":true}}}
+{"virtualbox":{"/home/vagrant/bufferbloat":{"guestpath":"/home/vagrant/bufferbloat","hostpath":"/Users/rafaelsantos/Code/mininet-vagrant/bufferbloat","disabled":false,"__vagrantfile":true},"/vagrant":{"guestpath":"/vagrant","hostpath":"/Users/rafaelsantos/Code/mininet-vagrant","disabled":false,"__vagrantfile":true}}}

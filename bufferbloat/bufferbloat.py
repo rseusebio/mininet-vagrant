@@ -63,13 +63,18 @@ class BBTopo(Topo):
 
     def build(self, n=2):
         # TODO: create two hosts
+        h1 = self.addHost('h1')
+        h2 = self.addHost('h2')
+        info('Two hosts created')
 
         # Here I have created a switch.  If you change its name, its
         # interface names will change from s0-eth1 to newname-eth1.
         switch = self.addSwitch('s0')
 
         # TODO: Add links with appropriate characteristics
-
+        self.addLink(h1, switch, bw=args.bw_host, delay='{0}'.format(args.delay), max_queue_size=args.maxq)
+        self.addLink(h2, switch, bw=args.bw_net, delay='{0}'.format(args.delay), max_queue_size=args.maxq)
+        info('Created two links')
 # Simple wrappers around monitoring utilities.  You are welcome to
 # contribute neatly written (using classes) monitoring scripts for
 # Mininet!
@@ -86,6 +91,7 @@ def start_iperf(net):
     # TODO: Start the iperf client on h1.  Ensure that you create a
     # long lived TCP flow.
     # client = ... 
+    client = h1.popen("iperf -c {0} -t {1} > {2}/iperf.txt".format(h2.IP(), args.time, args.dir), shell=True)
 
 def start_qmon(iface, interval_sec=0.1, outfile="q.txt"):
     monitor = Process(target=monitor_qlen,
@@ -97,11 +103,13 @@ def start_ping(net):
     # TODO: Start a ping train from h1 to h2 (or h2 to h1, does it
     # matter?)  Measure RTTs every 0.1 second.  Read the ping man page
     # to see how to do this.
+    h1 = net.get('h1')
+    h2 = net.get('h2')
 
     # Hint: Use host.popen(cmd, shell=True).  If you pass shell=True
     # to popen, you can redirect cmd's output using shell syntax.
     # i.e. ping ... > /path/to/ping.
-    pass
+    h1.popen("ping -i 0.1 {0} > {1}/ping.txt".format(h2.IP(), args.dir), shell=True)
 
 def start_webserver(net):
     h1 = net.get('h1')

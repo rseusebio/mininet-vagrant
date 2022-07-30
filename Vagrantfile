@@ -15,5 +15,5 @@ Vagrant.configure("2") do |config|
   # config.vm.synced_folder "../data", "/vagrant_data"
 
   config.vm.provision "shell", path: "bootstrap.sh", privileged: false
-  config.vm.synced_folder "/Users/rafaelsantos/Code/mininet-vagrant/bufferbloat" ""
+  config.vm.synced_folder "./bufferbloat", "/home/vagrant/bufferbloat"
 end
