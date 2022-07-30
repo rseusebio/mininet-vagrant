@@ -17,6 +17,8 @@ import sys
 import os
 import math
 
+import numpy as np
+
 parser = ArgumentParser(description="Bufferbloat tests")
 parser.add_argument('--bw-host', '-B',
                     type=float,
@@ -140,6 +142,12 @@ def bufferbloat():
 
     # TODO: Start iperf, webservers, etc.
     # start_iperf(net)
+    start_iperf(net)
+    print("iperf started")
+    start_webserver(net)
+    print("webserver started")
+    start_ping(net)
+    print("ping started")
 
     # TODO: measure the time it takes to complete webpage transfer
     # from h1 to h2 (say) 3 times.  Hint: check what the following
@@ -151,9 +159,17 @@ def bufferbloat():
 
     # Hint: have a separate function to do this and you may find the
     # loop below useful.
+    h1 = net.get('h1')
+    h2 = net.get('h2')
+    time_rec = []
+
     start_time = time()
     while True:
         # do the measurement (say) 3 times.
+        for i in range(3):
+            out = h2.popen("curl -o %s/download.html -s -w %%{time_total} %s/http/index.html" % (args.dir, h1.IP()))
+            time_rec.append(out.communicate()[0])
+        
         sleep(5)
         now = time()
         delta = now - start_time
@@ -164,7 +180,9 @@ def bufferbloat():
     # TODO: compute average (and standard deviation) of the fetch
     # times.  You don't need to plot them.  Just note it in your
     # README and explain.
-
+    mean = np.mean(np.array(time_rec).astype(np.float))
+    print("mean: {0}".format(mean))
+    
     # Hint: The command below invokes a CLI which you can use to
     # debug.  It allows you to run arbitrary commands inside your
     # emulated hosts h1 and h2.
