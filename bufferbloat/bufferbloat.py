@@ -122,7 +122,7 @@ def start_webserver(net):
 def bufferbloat():
     if not os.path.exists(args.dir):
         os.makedirs(args.dir)
-    os.system("sysctl -w net.ipv4.tcp_congestion_control=%s" % args.cong)
+    os.system("sudo sysctl -w net.ipv4.tcp_congestion_control=%s" % args.cong)
     topo = BBTopo()
     net = Mininet(topo=topo, host=CPULimitedHost, link=TCLink)
     net.start()
@@ -180,9 +180,9 @@ def bufferbloat():
     # TODO: compute average (and standard deviation) of the fetch
     # times.  You don't need to plot them.  Just note it in your
     # README and explain.
-    mean = np.mean(np.array(time_rec).astype(np.float))
+    mean = np.mean(np.array(time_rec).astype(np.float64))
     print("mean: {0}".format(mean))
-    
+
     # Hint: The command below invokes a CLI which you can use to
     # debug.  It allows you to run arbitrary commands inside your
     # emulated hosts h1 and h2.
