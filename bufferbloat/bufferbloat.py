@@ -28,7 +28,7 @@ parser.add_argument('--bw-host', '-B',
 parser.add_argument('--bw-net', '-b',
                     type=float,
                     help="Bandwidth of bottleneck (network) link (Mb/s)",
-                    required=True)
+                    default=1.5)
 
 parser.add_argument('--delay',
                     type=float,
@@ -115,7 +115,7 @@ def start_ping(net):
 
 def start_webserver(net):
     h1 = net.get('h1')
-    proc = h1.popen("python webserver.py", shell=True)
+    proc = h1.popen("python3 webserver.py", shell=True)
     sleep(1)
     return [proc]
 
@@ -167,7 +167,7 @@ def bufferbloat():
     while True:
         # do the measurement (say) 3 times.
         for i in range(3):
-            out = h2.popen("curl -o %s/download.html -s -w %%{time_total} %s/http/index.html" % (args.dir, h1.IP()))
+            out = h2.popen("curl -o %s/download.html -s -w %%{time_total} %s/index.html" % (args.dir, h1.IP()))
             time_rec.append(out.communicate()[0])
         
         sleep(5)
