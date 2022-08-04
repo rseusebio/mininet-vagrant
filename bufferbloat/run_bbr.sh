@@ -10,7 +10,7 @@ bwnet=1.5 # (Mb/s)
 delay=5
 
 iperf_port=5001
-cong="reno"
+cong="bbr"
 for qsize in 20 100; do
     dir=$cong-bb-q$qsize-t$time
 
@@ -27,7 +27,6 @@ for qsize in 20 100; do
     # TODO: Ensure the input file names match the ones you use in
     # bufferbloat.py script.  Also ensure the plot file names match
     # the required naming convention when submitting your tarball.
-    python3 plot_queue.py -f $dir/q.txt -o $dir/reno-buffer-q$qsize.png
-    python3 plot_ping.py -f $dir/ping.txt -o $dir/reno-rtt-q$qsize.png
-    echo "done"
+    python3 plot_queue.py -f $dir/q.txt -o $dir/bbr-buffer-q$qsize.png
+    python3 plot_ping.py -f $dir/ping.txt -o $dir/bbr-rtt-q$qsize.png
 done

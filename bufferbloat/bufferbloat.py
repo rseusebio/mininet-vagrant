@@ -2,7 +2,7 @@ from mininet.topo import Topo
 from mininet.node import CPULimitedHost
 from mininet.link import TCLink
 from mininet.net import Mininet
-from mininet.log import lg, info
+from mininet.log import info
 from mininet.util import dumpNodeConnections
 from mininet.cli import CLI
 
@@ -28,7 +28,7 @@ parser.add_argument('--bw-host', '-B',
 parser.add_argument('--bw-net', '-b',
                     type=float,
                     help="Bandwidth of bottleneck (network) link (Mb/s)",
-                    default=1.5)
+                    default=True)
 
 parser.add_argument('--delay',
                     type=float,
@@ -53,9 +53,9 @@ parser.add_argument('--maxq',
 # behaviour.  For those who are curious, invoke this script with
 # --cong cubic and see what happens...
 # sysctl -a | grep cong should list some interesting parameters.
-parser.add_argument('--cong',
+parser.add_argument('--cong', '-c',
                     help="Congestion control algorithm to use",
-                    default="reno")
+                    required=True)
 
 # Expt parameters
 args = parser.parse_args()
@@ -67,16 +67,20 @@ class BBTopo(Topo):
         # TODO: create two hosts
         h1 = self.addHost('h1')
         h2 = self.addHost('h2')
-        info('Two hosts created')
+        print('Hosts one and two created')
+        print(h1)
+        print(h2)
 
         # Here I have created a switch.  If you change its name, its
         # interface names will change from s0-eth1 to newname-eth1.
         switch = self.addSwitch('s0')
 
         # TODO: Add links with appropriate characteristics
-        self.addLink(h1, switch, bw=args.bw_host, delay='{0}'.format(args.delay), max_queue_size=args.maxq)
-        self.addLink(h2, switch, bw=args.bw_net, delay='{0}'.format(args.delay), max_queue_size=args.maxq)
-        info('Created two links')
+        l1 = self.addLink(h1, switch, bw=args.bw_host, delay='{0}'.format(args.delay), max_queue_size=args.maxq)
+        l2 = self.addLink(h2, switch, bw=args.bw_net, delay='{0}'.format(args.delay), max_queue_size=args.maxq)
+        print('links created')
+        print(l1)
+        print(l2)
 # Simple wrappers around monitoring utilities.  You are welcome to
 # contribute neatly written (using classes) monitoring scripts for
 # Mininet!
@@ -93,6 +97,7 @@ def start_iperf(net):
     # TODO: Start the iperf client on h1.  Ensure that you create a
     # long lived TCP flow.
     # client = ... 
+    # client = h1.popen("iperf -c {0} -t {1} > {2}/iperf.txt".format(h2.IP(), args.time, args.dir), shell=True)
     client = h1.popen("iperf -c {0} -t {1} > {2}/iperf.txt".format(h2.IP(), args.time, args.dir), shell=True)
 
 def start_qmon(iface, interval_sec=0.1, outfile="q.txt"):
@@ -119,9 +124,19 @@ def start_webserver(net):
     sleep(1)
     return [proc]
 
+def fetch_webpage(net: Mininet):
+    h1 = net.get('h1') 
+    h2 = net.get('h2')
+
+    # output = h2.popen("curl -o /dev/null -s -w %%{time_total} %s/index.html" % (args.dir, h1.IP()))
+    output = h2.popen("curl -o /dev/null -s -w %%{time_total} %s/index.html" % h1.IP())
+
+    return output.communicate()[0]
+
 def bufferbloat():
     if not os.path.exists(args.dir):
         os.makedirs(args.dir)
+    print("setting congestion control: {0}".format(args.cong))
     os.system("sudo sysctl -w net.ipv4.tcp_congestion_control=%s" % args.cong)
     topo = BBTopo()
     net = Mininet(topo=topo, host=CPULimitedHost, link=TCLink)
@@ -137,8 +152,7 @@ def bufferbloat():
     # interface?  The interface numbering starts with 1 and increases.
     # Depending on the order you add links to your network, this
     # number may be 1 or 2.  Ensure you use the correct number.
-    qmon = start_qmon(iface='s0-eth2',
-                      outfile='%s/q.txt' % (args.dir))
+    qmon = start_qmon(iface='s0-eth2', outfile='%s/q.txt' % (args.dir))
 
     # TODO: Start iperf, webservers, etc.
     # start_iperf(net)
@@ -159,16 +173,14 @@ def bufferbloat():
 
     # Hint: have a separate function to do this and you may find the
     # loop below useful.
-    h1 = net.get('h1')
-    h2 = net.get('h2')
-    time_rec = []
+    time_records = []
 
     start_time = time()
     while True:
-        # do the measurement (say) 3 times.
+        # # do the measurement (say) 3 times.
         for i in range(3):
-            out = h2.popen("curl -o %s/download.html -s -w %%{time_total} %s/index.html" % (args.dir, h1.IP()))
-            time_rec.append(out.communicate()[0])
+            total_time = fetch_webpage(net)
+            time_records.append(total_time)
         
         sleep(5)
         now = time()
@@ -180,8 +192,10 @@ def bufferbloat():
     # TODO: compute average (and standard deviation) of the fetch
     # times.  You don't need to plot them.  Just note it in your
     # README and explain.
-    mean = np.mean(np.array(time_rec).astype(np.float64))
-    print("mean: {0}".format(mean))
+    arr = np.array(time_records).astype(float)
+
+    print("Mean: {0}".format(np.mean(arr)))
+    print("Standard Deviation: {0}".format(np.std(arr)))
 
     # Hint: The command below invokes a CLI which you can use to
     # debug.  It allows you to run arbitrary commands inside your
