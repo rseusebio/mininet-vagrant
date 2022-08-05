@@ -3,7 +3,7 @@
 # Note: Mininet must be run as root.  So invoke this shell script
 # using sudo.
 
-time=110
+time=100
 bwnet=1.5 # (Mb/s)
 # TODO: If you want the RTT to be 20ms what should the delay on each
 # link be?  Set this value correctly.
