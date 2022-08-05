@@ -1,6 +1,4 @@
-# Mininet VM with Vagrant
-
-Install Vagrant, and run the VM with `vagrant up`!
+# Mininet Experiment VM with Vagrant
 
 ## Usage
 
